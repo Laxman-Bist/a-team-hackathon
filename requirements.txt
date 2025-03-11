@@ -1,4 +1,6 @@
-keyboard
+google-generativeai
+python-dotenv
 pyperclip
-pyautogui
-pywin32
+keyboard
+plyer
+tk
