@@ -3,4 +3,7 @@ python-dotenv
 pyperclip
 keyboard
 plyer
+psutil
 tk
+re
+pygetwindow
