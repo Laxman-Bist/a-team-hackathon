@@ -1,4 +1,5 @@
 import pyperclip
+import re
 from utils.notifications import send_notification
 
 def sanitize_text(text, personal_data, choice):
@@ -18,9 +19,19 @@ def sanitize_text(text, personal_data, choice):
             text = text.replace(pi, "*" * len(pi))
     elif choice == "remove":
         for pi in personal_data.keys():
-            text = text.replace(pi, "")
+            pi = pi.strip()  # Ensure no extra spaces
+            print(f"Removing: '{pi}' from text")  # Debugging
 
-    return text.strip()
+            # If text is an exact match, just clear it
+            if text.strip() == pi:
+                text = " "
+            else:
+                # Remove the personal data safely from any position
+                text = re.sub(rf"\b{re.escape(pi)}\b", "", text)
+
+            print(f"Updated text: '{text}'")  # Debugging
+
+    return text
 
 def finalize_text(text, root=None):
     """
@@ -31,7 +42,7 @@ def finalize_text(text, root=None):
         text (str): The text to be processed and copied to the clipboard.
         root (optional): The root window to be destroyed after processing the text.
     """
-    if text:
+    if text: 
         pyperclip.copy(text)
         send_notification("Processed text copied to clipboard!")
     else:
