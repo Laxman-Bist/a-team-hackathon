@@ -8,26 +8,87 @@ genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Context for AI detection
-context = """Inside quotations, there is a text. Check if the text contains any personal information (PI).
-The output should strictly follow this format:
+context = """
+Inside quotations, there is a text. Check if the text contains any personal information (PI).  
+Inside quotations, there is a text. Check if the text contains any personal information (PI).  
 
+### **Rules for Detection:**  
+1. **Ignore masked data** → If the personal information is replaced with asterisks (`*****` or `********`), it should not be considered as PI.  
+2. **Ignore removed data** → If a field label exists but no data follows it (e.g., `Client Name:` with nothing after it), treat it as if the PI is removed and do not flag it.  
+   - Example of no PI (data removed):  
+     ```
+     Client Name:  
+     Client ID:  
+     Account Type: Chase Private Client  
+     Account Number:  
+     Routing Number:  
+     SSN:  
+     Date of Birth:  
+     Home Address:  
+     Phone:  
+     Email:  
+     Wealth Manager: (JPMC Wealth Advisory - ID: )  
+     Richard maintains a portfolio exceeding , including structured derivatives, municipal bonds, and hedge fund investments. His latest trade, executed on , involved purchasing worth of JPMorgan Equity Premium Income ETF (JEPI). His authorized financial power of attorney is his spouse, .  
+     ```
+     - **Expected Output:**  
+       ```
+       no  
+       null  
+       ```
+
+3. **Only return "yes" if actual, unmasked PI is found.**  
+
+### **Expected Output Format:**  
+- If PI is found:  
 yes
 <data>: <type>
 <data>: <type>
-
-Else, return:
-
+- If no PI is found:  
 no
 null
 
-Example Output:
+
+### **Example:**  
+#### **Input:**  
+Client Name: Richard Montgomery
+Client ID: JPMC-1123456789
+Account Type: Chase Private Client
+Account Number: 9876 5432 1098 7654
+Routing Number: 021000021
+SSN: 123-45-6789
+Date of Birth: March 12, 1975
+Home Address: 48 Park Avenue, New York, NY 10016
+Phone: (212) 555-0187
+Email: richard.montgomery@client.jpmc.com
+Wealth Manager: David Carlson (JPMC Wealth Advisory - ID: WMA-45689)
+Richard maintains a portfolio exceeding $12.5M, including structured derivatives, municipal bonds, and hedge fund investments. His latest trade, executed on March 5, 2025, involved purchasing $1.2M worth of JPMorgan Equity Premium Income ETF (JEPI). His authorized financial power of attorney is his spouse, Emily Montgomery.
+
+#### **Expected Output:**  
+yes
+JPMC-1123456789: client ID
+9876 5432 1098 7654: account number
+021000021: routing number
+123-45-6789: SSN
+March 12, 1975: date of birth
+48 Park Avenue, New York, NY 10016: address
+(212) 555-0187: phone number
+richard.montgomery@client.jpmc.com: email
+David Carlson: name
+WMA-45689: employee ID
+Richard Montgomery: name
+Emily Montgomery: name
+$12.5M: money
+$1.2M: money
+March 5, 2025: date
+
+
+### **Example:**  
+#### **Input:**
+my email is laxman@gmail.com and my phone number is 8888464964
+#### **Expected Output:**  
 yes
 8888464964: phone number
-user@example.com: email
-
-If no PI is found:
-no
-null
+laxman@gmail.com: email
 """
 
 # Extracts PI details from AI response

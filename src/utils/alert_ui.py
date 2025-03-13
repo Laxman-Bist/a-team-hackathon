@@ -1,16 +1,11 @@
 import os
 import winsound
-from tkinter import Tk, Button, Label
+import tkinter as tk
+from tkinter import scrolledtext
 from utils.text_processing import sanitize_text, finalize_text
 
 def play_alert_sound():
-    """
-    Plays an alert sound based on the operating system.
-    For Windows, it plays the "SystemExclamation" sound using the winsound module.
-    For macOS, it plays the "Ping" sound using the afplay command.
-    For Linux, it plays the "message-new-instant" sound using the canberra-gtk-play command.
-    If an error occurs while attempting to play the sound, it will be silently ignored.
-    """
+    """Plays an alert sound based on the operating system."""
     try:
         if os.name == "nt":
             winsound.PlaySound("SystemExclamation", winsound.SND_ALIAS)
@@ -21,18 +16,11 @@ def play_alert_sound():
         pass
 
 def show_alert_and_get_choice(personal_data, text):
-    """
-    Displays a GUI alert window to notify the user of detected sensitive data and provides options to mask, remove, or ignore the data.
-    Args:
-        personal_data (dict): A dictionary containing the detected sensitive data with keys as data types and values as the corresponding data.
-        text (str): The original text containing the sensitive data.
-    Returns:
-        None
-    """
-    root = Tk()
+    """Displays a scrollable GUI alert window for sensitive data detection."""
+    root = tk.Tk()
     root.title("Sensitive Data Detected")
-    root.geometry("400x300")
-    root.resizable(False, False)
+    root.geometry("450x350")
+    root.resizable(True, True)  # Allow resizing
 
     root.attributes('-topmost', True)
     root.lift()
@@ -42,11 +30,22 @@ def show_alert_and_get_choice(personal_data, text):
 
     details = "\n".join([f"{k}: {v}" for k, v in personal_data.items()])
 
-    label = Label(root, text=f"Detected Sensitive Data:\n\n{details}", wraplength=350, justify="left")
-    label.pack(pady=10)
+    # Frame for scrollable text
+    text_frame = tk.Frame(root)
+    text_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-    Button(root, text="Mask", command=lambda: finalize_text(sanitize_text(text, personal_data, "mask"), root), width=10).pack(pady=5)
-    Button(root, text="Remove", command=lambda: finalize_text(sanitize_text(text, personal_data, "remove"), root), width=10).pack(pady=5)
-    Button(root, text="Ignore", command=root.destroy, width=10).pack(pady=5)
+    # Scrollable text widget
+    text_area = scrolledtext.ScrolledText(text_frame, wrap="word", height=8, width=50)
+    text_area.insert("1.0", f"Detected Sensitive Data:\n\n{details}")
+    text_area.config(state="disabled")  # Make text read-only
+    text_area.pack(fill="both", expand=True)
+
+    # Buttons
+    btn_frame = tk.Frame(root)
+    btn_frame.pack(pady=10)
+
+    tk.Button(btn_frame, text="Mask", command=lambda: finalize_text(sanitize_text(text, personal_data, "mask"), root), width=10).pack(side="left", padx=5)
+    tk.Button(btn_frame, text="Remove", command=lambda: finalize_text(sanitize_text(text, personal_data, "remove"), root), width=10).pack(side="left", padx=5)
+    tk.Button(btn_frame, text="Ignore", command=root.destroy, width=10).pack(side="left", padx=5)
 
     root.mainloop()

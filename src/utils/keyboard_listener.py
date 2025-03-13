@@ -6,7 +6,7 @@ import psutil
 import pyautogui
 import win32gui
 import win32process
-from utils.detection_regex import get_response
+from utils.detection import get_response
 from utils.alert_ui import show_alert_and_get_choice
 from dotenv import load_dotenv
 
